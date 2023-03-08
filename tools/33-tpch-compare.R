@@ -1,5 +1,5 @@
 pkgload::load_all()
-# library(duckdb)
+library(duckdb)
 
 Sys.setenv(DUCKPLYR_FORCE = TRUE)
 

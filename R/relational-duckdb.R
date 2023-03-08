@@ -14,6 +14,8 @@ get_default_duckdb_connection <- function() {
     DBI::dbExecute(con, 'CREATE MACRO "=="(a, b) AS a = b')
     DBI::dbExecute(con, 'CREATE MACRO "!="(a, b) AS a <> b')
     DBI::dbExecute(con, 'CREATE MACRO "is.na"(a) AS (a IS NULL)')
+    DBI::dbExecute(con, 'CREATE MACRO "prefix"(a, b) AS prefix(a, b)')
+    DBI::dbExecute(con, 'CREATE MACRO "suffix"(a, b) AS suffix(a, b)')
     DBI::dbExecute(con, 'CREATE MACRO "n"() AS (COUNT(*))')
     # FIXME: Implement na.rm = FALSE, https://github.com/duckdb/duckdb/issues/5832#issuecomment-1375735472
     DBI::dbExecute(con, 'CREATE MACRO "sum"(x) AS (CASE WHEN SUM(x) IS NULL THEN 0 ELSE SUM(x) END)')
