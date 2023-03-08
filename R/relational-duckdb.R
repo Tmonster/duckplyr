@@ -91,7 +91,7 @@ duckdb_rel_from_df <- function(df) {
 
   # FIXME: For some other reason, it seems crucial to assign the result to a
   # variable before returning it
-  out <- duckdb:::rel_from_df(con, df)
+  out <- duckdb:::rel_from_df(con, df, experimental=TRUE)
 
   out
 
@@ -191,7 +191,7 @@ to_duckdb_expr <- function(x) {
       out
     },
     relational_relexpr_constant = {
-      out <- duckdb:::expr_constant(x$val)
+      out <- duckdb:::expr_constant(x$val, experimental=TRUE)
       if (!is.null(x$alias)) {
         duckdb:::expr_set_alias(out, x$alias)
       }
