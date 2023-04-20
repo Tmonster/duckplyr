@@ -54,26 +54,33 @@ tmp <- toc()
 time = tmp$toc - tmp$tic
 res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
 
-q = 7
-tic()
-tpch_raw_07(con, experimental)
-tmp <- toc()
-time = tmp$toc - tmp$tic
-res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+if (!experimental) {
+	q = 7
+	tic()
+	tpch_raw_07(con, experimental)
+	tmp <- toc()
+	time = tmp$toc - tmp$tic
+	res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
 
-q = 8
-tic()
-tpch_raw_08(con, experimental)
-tmp <- toc()
-time = tmp$toc - tmp$tic
-res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+	q = 8
+	tic()
+	tpch_raw_08(con, experimental)
+	tmp <- toc()
+	time = tmp$toc - tmp$tic
+	res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
 
-q = 9
-tic()
-tpch_raw_09(con, experimental)
-tmp <- toc()
-time = tmp$toc - tmp$tic
-res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+	q = 9
+	tic()
+	tpch_raw_09(con, experimental)
+	tmp <- toc()
+	time = tmp$toc - tmp$tic
+	res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+} else {
+	res[[7]] <- data.frame(pkg = pkg, q=7, time = 0)
+	res[[8]] <- data.frame(pkg = pkg, q=8, time = 0)
+	res[[9]] <- data.frame(pkg = pkg, q=9, time = 0)
+}
+
 
 q = 10
 tic()
@@ -96,12 +103,16 @@ tmp <- toc()
 time = tmp$toc - tmp$tic
 res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
 
-q = 13
-tic()
-tpch_raw_13(con, experimental)
-tmp <- toc()
-time = tmp$toc - tmp$tic
-res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+if (!experimental) {
+	q = 13
+	tic()
+	tpch_raw_13(con, experimental)
+	tmp <- toc()
+	time = tmp$toc - tmp$tic
+	res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+} else {
+	res[[13]] <- data.frame(pkg = pkg, q=13, time = 0)
+}
 
 q = 14
 tic()
@@ -152,19 +163,24 @@ tmp <- toc()
 time = tmp$toc - tmp$tic
 res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
 
-q = 21
-tic()
-tpch_raw_21(con, experimental)
-tmp <- toc()
-time = tmp$toc - tmp$tic
-res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+if (!experimental) {
+	q = 21
+	tic()
+	tpch_raw_21(con, experimental)
+	tmp <- toc()
+	time = tmp$toc - tmp$tic
+	res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
 
-q = 22
-tic()
-tpch_raw_22(con, experimental)
-tmp <- toc()
-time = tmp$toc - tmp$tic
-res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+	q = 22
+	tic()
+	tpch_raw_22(con, experimental)
+	tmp <- toc()
+	time = tmp$toc - tmp$tic
+	res[[q]] <- data.frame(pkg = pkg, q=q, time = time)
+} else {
+	res[[21]] <- data.frame(pkg = pkg, q=21, time = time)
+	res[[22]] <- data.frame(pkg = pkg, q=22, time = time)
+}
 
 df <- do.call(rbind, res)
 write.csv(df, paste0("res-", pkg, ".csv"))
