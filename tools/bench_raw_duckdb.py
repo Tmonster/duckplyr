@@ -7,21 +7,18 @@ main_con = duckdb.connect()
 main_con.execute('install tpch;')
 main_con.execute('load tpch;')
 
-main_con.execute('call dbgen(sf=5);')
+main_con.execute('call dbgen(sf=1);')
 
 pkg = "raw-duckdb"
 
 results = []
 
-import pdb
-pdb.set_trace()
 
 for i in range(1,23):
     q = f"pragma tpch({i});"
     start = time.time()
     df_result = main_con.execute(q).fetchall()
     end = time.time()
-    pdb.set_trace()
     query_time = float(end - start)
     results.append([str(i), pkg, str(i), str(query_time)])
     

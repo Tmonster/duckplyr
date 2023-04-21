@@ -6,7 +6,7 @@ Sys.setenv(DUCKPLYR_META_SKIP = TRUE)
 
 # Sys.setenv(DUCKPLYR_OUTPUT_ORDER = TRUE)
 
-load("tools/tpch/500.rda")
+load("tools/tpch/100.rda")
 
 customer <- as_duckplyr_df(customer)
 lineitem <- as_duckplyr_df(lineitem)
@@ -44,7 +44,7 @@ test_dplyr_q <- head(n = -1, list(
 ))
 
 res <- list()
-pkg <- "duckdb"
+pkg <- "duckplyr-force-parallelism"
 
 for (q in seq_along(test_dplyr_q)) {
   f <- test_dplyr_q[[q]]
