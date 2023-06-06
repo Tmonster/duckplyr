@@ -1,4 +1,4 @@
-load("tools/tpch/001.rda")
+qloadm("tools/tpch/001.qs")
 con <- DBI::dbConnect(duckdb::duckdb())
 experimental <- FALSE
 invisible(DBI::dbExecute(con, "CREATE MACRO \">=\"(a, b) AS a >= b"))
@@ -134,5 +134,6 @@ rel5 <- duckdb:::rel_aggregate(
     tmp_expr
   })
 )
-rel5
-duckdb:::rel_to_altrep(rel5)
+rel6 <- duckdb:::rel_distinct(rel5)
+rel6
+duckdb:::rel_to_altrep(rel6)

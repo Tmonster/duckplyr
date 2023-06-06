@@ -1,12 +1,14 @@
-load("tools/tpch/001.rda")
+qloadm("tools/tpch/001.qs")
 con <- DBI::dbConnect(duckdb::duckdb())
 experimental <- FALSE
 invisible(DBI::dbExecute(con, "CREATE MACRO \"|\"(x, y) AS (x OR y)"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"==\"(a, b) AS a = b"))
+invisible(DBI::dbExecute(con, "CREATE MACRO \"___coalesce\"(a, b) AS COALESCE(a, b)"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \">=\"(a, b) AS a >= b"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"as.Date\"(x) AS strptime(x, '%Y-%m-%d')"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"<=\"(a, b) AS a <= b"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"&\"(x, y) AS (x AND y)"))
+invisible(DBI::dbExecute(con, "CREATE MACRO \"as.integer\"(x) AS CAST(x AS int32)"))
 df1 <- supplier
 rel1 <- duckdb:::rel_from_df(con, df1, experimental = experimental)
 rel2 <- duckdb:::rel_project(
@@ -90,7 +92,10 @@ rel9 <- duckdb:::rel_project(
   rel8,
   list(
     {
-      tmp_expr <- duckdb:::expr_reference("s_nationkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("s_nationkey", rel6), duckdb:::expr_reference("n1_nationkey", rel7))
+      )
       duckdb:::expr_set_alias(tmp_expr, "s_nationkey")
       tmp_expr
     },
@@ -208,7 +213,10 @@ rel19 <- duckdb:::rel_project(
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_reference("c_nationkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("c_nationkey", rel16), duckdb:::expr_reference("n2_nationkey", rel17))
+      )
       duckdb:::expr_set_alias(tmp_expr, "c_nationkey")
       tmp_expr
     },
@@ -268,7 +276,10 @@ rel26 <- duckdb:::rel_project(
   rel25,
   list(
     {
-      tmp_expr <- duckdb:::expr_reference("o_custkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("o_custkey", rel23), duckdb:::expr_reference("c_custkey", rel24))
+      )
       duckdb:::expr_set_alias(tmp_expr, "o_custkey")
       tmp_expr
     },
@@ -385,7 +396,10 @@ rel34 <- duckdb:::rel_project(
   rel33,
   list(
     {
-      tmp_expr <- duckdb:::expr_reference("l_orderkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("l_orderkey", rel31), duckdb:::expr_reference("o_orderkey", rel32))
+      )
       duckdb:::expr_set_alias(tmp_expr, "l_orderkey")
       tmp_expr
     },
@@ -463,7 +477,10 @@ rel39 <- duckdb:::rel_project(
   rel38,
   list(
     {
-      tmp_expr <- duckdb:::expr_reference("l_suppkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("l_suppkey", rel36), duckdb:::expr_reference("s_suppkey", rel37))
+      )
       duckdb:::expr_set_alias(tmp_expr, "l_suppkey")
       tmp_expr
     },
@@ -687,7 +704,22 @@ rel43 <- duckdb:::rel_project(
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_function("year", list(duckdb:::expr_reference("l_shipdate")))
+      tmp_expr <- duckdb:::expr_function(
+        "as.integer",
+        list(
+          duckdb:::expr_function(
+            "strftime",
+            list(
+              duckdb:::expr_reference("l_shipdate"),
+              if ("experimental" %in% names(formals(duckdb:::expr_constant))) {
+                duckdb:::expr_constant("%Y", experimental = experimental)
+              } else {
+                duckdb:::expr_constant("%Y")
+              }
+            )
+          )
+        )
+      )
       duckdb:::expr_set_alias(tmp_expr, "l_year")
       tmp_expr
     }

@@ -1,7 +1,11 @@
-load("tools/tpch/001.rda")
+qloadm("tools/tpch/001.qs")
 con <- DBI::dbConnect(duckdb::duckdb())
 experimental <- FALSE
 invisible(DBI::dbExecute(con, "CREATE MACRO \"==\"(a, b) AS a = b"))
+invisible(
+  DBI::dbExecute(con, "CREATE MACRO \"grepl\"(pattern, x) AS regexp_matches(x, pattern)")
+)
+invisible(DBI::dbExecute(con, "CREATE MACRO \"___coalesce\"(a, b) AS COALESCE(a, b)"))
 invisible(
   DBI::dbExecute(
     con,
@@ -73,14 +77,14 @@ rel5 <- duckdb:::rel_filter(
       )
     ),
     duckdb:::expr_function(
-      "suffix",
+      "grepl",
       list(
-        duckdb:::expr_reference("p_type"),
         if ("experimental" %in% names(formals(duckdb:::expr_constant))) {
-          duckdb:::expr_constant("BRASS", experimental = experimental)
+          duckdb:::expr_constant("BRASS$", experimental = experimental)
         } else {
-          duckdb:::expr_constant("BRASS")
-        }
+          duckdb:::expr_constant("BRASS$")
+        },
+        duckdb:::expr_reference("p_type")
       )
     )
   )
@@ -166,7 +170,10 @@ rel13 <- duckdb:::rel_project(
   rel12,
   list(
     {
-      tmp_expr <- duckdb:::expr_reference("p_partkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("p_partkey", rel9), duckdb:::expr_reference("ps_partkey", rel10))
+      )
       duckdb:::expr_set_alias(tmp_expr, "p_partkey")
       tmp_expr
     },
@@ -335,7 +342,10 @@ rel22 <- duckdb:::rel_project(
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_reference("ps_suppkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("ps_suppkey", rel18), duckdb:::expr_reference("s_suppkey", rel19))
+      )
       duckdb:::expr_set_alias(tmp_expr, "ps_suppkey")
       tmp_expr
     },
@@ -532,7 +542,10 @@ rel33 <- duckdb:::rel_project(
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_reference("n_regionkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("n_regionkey", rel29), duckdb:::expr_reference("r_regionkey", rel30))
+      )
       duckdb:::expr_set_alias(tmp_expr, "n_regionkey")
       tmp_expr
     },
@@ -679,7 +692,10 @@ rel41 <- duckdb:::rel_project(
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_reference("s_nationkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("s_nationkey", rel37), duckdb:::expr_reference("n_nationkey", rel38))
+      )
       duckdb:::expr_set_alias(tmp_expr, "s_nationkey")
       tmp_expr
     },
@@ -939,12 +955,18 @@ rel52 <- duckdb:::rel_project(
   rel51,
   list(
     {
-      tmp_expr <- duckdb:::expr_reference("p_partkey_x")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("p_partkey_x", rel48), duckdb:::expr_reference("p_partkey_y", rel49))
+      )
       duckdb:::expr_set_alias(tmp_expr, "p_partkey")
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_reference("ps_supplycost_x")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("ps_supplycost_x", rel48), duckdb:::expr_reference("min_ps_supplycost_y", rel49))
+      )
       duckdb:::expr_set_alias(tmp_expr, "ps_supplycost")
       tmp_expr
     },

@@ -20,14 +20,14 @@ tpch_raw_oo_16 <- function(con, experimental) {
         "!",
         list(
           duckdb:::expr_function(
-            "prefix",
+            "grepl",
             list(
-              duckdb:::expr_reference("p_type"),
               if ("experimental" %in% names(formals(duckdb:::expr_constant))) {
-                duckdb:::expr_constant("MEDIUM POLISHED", experimental = experimental)
+                duckdb:::expr_constant("^MEDIUM POLISHED", experimental = experimental)
               } else {
-                duckdb:::expr_constant("MEDIUM POLISHED")
-              }
+                duckdb:::expr_constant("^MEDIUM POLISHED")
+              },
+              duckdb:::expr_reference("p_type")
             )
           )
         )
@@ -288,7 +288,10 @@ tpch_raw_oo_16 <- function(con, experimental) {
         tmp_expr
       },
       {
-        tmp_expr <- duckdb:::expr_reference("ps_suppkey")
+        tmp_expr <- duckdb:::expr_function(
+          "___coalesce",
+          list(duckdb:::expr_reference("ps_suppkey", rel8), duckdb:::expr_reference("s_suppkey", rel9))
+        )
         duckdb:::expr_set_alias(tmp_expr, "ps_suppkey")
         tmp_expr
       },
@@ -450,7 +453,10 @@ tpch_raw_oo_16 <- function(con, experimental) {
     rel19,
     list(
       {
-        tmp_expr <- duckdb:::expr_reference("p_partkey")
+        tmp_expr <- duckdb:::expr_function(
+          "___coalesce",
+          list(duckdb:::expr_reference("p_partkey", rel16), duckdb:::expr_reference("ps_partkey", rel17))
+        )
         duckdb:::expr_set_alias(tmp_expr, "p_partkey")
         tmp_expr
       },

@@ -1,7 +1,11 @@
-load("tools/tpch/001.rda")
+qloadm("tools/tpch/001.qs")
 con <- DBI::dbConnect(duckdb::duckdb())
 experimental <- FALSE
 invisible(DBI::dbExecute(con, "CREATE MACRO \"==\"(a, b) AS a = b"))
+invisible(DBI::dbExecute(con, "CREATE MACRO \"___coalesce\"(a, b) AS COALESCE(a, b)"))
+invisible(
+  DBI::dbExecute(con, "CREATE MACRO \"grepl\"(pattern, x) AS regexp_matches(x, pattern)")
+)
 invisible(DBI::dbExecute(con, "CREATE MACRO \">=\"(a, b) AS a >= b"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"as.Date\"(x) AS strptime(x, '%Y-%m-%d')"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"<\"(a, b) AS a < b"))
@@ -58,7 +62,10 @@ rel7 <- duckdb:::rel_project(
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_reference("s_nationkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("s_nationkey", rel4), duckdb:::expr_reference("n_nationkey", rel5))
+      )
       duckdb:::expr_set_alias(tmp_expr, "s_nationkey")
       tmp_expr
     },
@@ -120,14 +127,14 @@ rel10 <- duckdb:::rel_filter(
   rel9,
   list(
     duckdb:::expr_function(
-      "prefix",
+      "grepl",
       list(
-        duckdb:::expr_reference("p_name"),
         if ("experimental" %in% names(formals(duckdb:::expr_constant))) {
-          duckdb:::expr_constant("forest", experimental = experimental)
+          duckdb:::expr_constant("^forest", experimental = experimental)
         } else {
-          duckdb:::expr_constant("forest")
-        }
+          duckdb:::expr_constant("^forest")
+        },
+        duckdb:::expr_reference("p_name")
       )
     )
   )
@@ -257,7 +264,10 @@ rel27 <- duckdb:::rel_project(
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_reference("ps_suppkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("ps_suppkey", rel24), duckdb:::expr_reference("l_suppkey", rel25))
+      )
       duckdb:::expr_set_alias(tmp_expr, "ps_suppkey")
       tmp_expr
     },

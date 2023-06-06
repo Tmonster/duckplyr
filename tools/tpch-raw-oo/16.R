@@ -1,13 +1,14 @@
-load("tools/tpch/001.rda")
+qloadm("tools/tpch/001.qs")
 con <- DBI::dbConnect(duckdb::duckdb())
 experimental <- FALSE
 invisible(DBI::dbExecute(con, "CREATE MACRO \"!=\"(a, b) AS a <> b"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"!\"(x) AS (NOT x)"))
-invisible(DBI::dbExecute(con, "CREATE MACRO \"|\"(x, y) AS (x OR y)"))
-invisible(DBI::dbExecute(con, "CREATE MACRO \"==\"(a, b) AS a = b"))
 invisible(
   DBI::dbExecute(con, "CREATE MACRO \"grepl\"(pattern, x) AS regexp_matches(x, pattern)")
 )
+invisible(DBI::dbExecute(con, "CREATE MACRO \"|\"(x, y) AS (x OR y)"))
+invisible(DBI::dbExecute(con, "CREATE MACRO \"==\"(a, b) AS a = b"))
+invisible(DBI::dbExecute(con, "CREATE MACRO \"___coalesce\"(a, b) AS COALESCE(a, b)"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"n_distinct\"(x) AS (COUNT(DISTINCT x))"))
 invisible(DBI::dbExecute(con, "CREATE MACRO \"desc\"(x) AS (-x)"))
 df1 <- part
@@ -30,14 +31,14 @@ rel2 <- duckdb:::rel_filter(
       "!",
       list(
         duckdb:::expr_function(
-          "prefix",
+          "grepl",
           list(
-            duckdb:::expr_reference("p_type"),
             if ("experimental" %in% names(formals(duckdb:::expr_constant))) {
-              duckdb:::expr_constant("MEDIUM POLISHED", experimental = experimental)
+              duckdb:::expr_constant("^MEDIUM POLISHED", experimental = experimental)
             } else {
-              duckdb:::expr_constant("MEDIUM POLISHED")
-            }
+              duckdb:::expr_constant("^MEDIUM POLISHED")
+            },
+            duckdb:::expr_reference("p_type")
           )
         )
       )
@@ -298,7 +299,10 @@ rel12 <- duckdb:::rel_project(
       tmp_expr
     },
     {
-      tmp_expr <- duckdb:::expr_reference("ps_suppkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("ps_suppkey", rel8), duckdb:::expr_reference("s_suppkey", rel9))
+      )
       duckdb:::expr_set_alias(tmp_expr, "ps_suppkey")
       tmp_expr
     },
@@ -460,7 +464,10 @@ rel20 <- duckdb:::rel_project(
   rel19,
   list(
     {
-      tmp_expr <- duckdb:::expr_reference("p_partkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("p_partkey", rel16), duckdb:::expr_reference("ps_partkey", rel17))
+      )
       duckdb:::expr_set_alias(tmp_expr, "p_partkey")
       tmp_expr
     },

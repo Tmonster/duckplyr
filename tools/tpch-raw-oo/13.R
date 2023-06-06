@@ -1,4 +1,4 @@
-load("tools/tpch/001.rda")
+qloadm("tools/tpch/001.qs")
 con <- DBI::dbConnect(duckdb::duckdb())
 experimental <- FALSE
 invisible(DBI::dbExecute(con, "CREATE MACRO \"!\"(x) AS (NOT x)"))
@@ -6,6 +6,7 @@ invisible(
   DBI::dbExecute(con, "CREATE MACRO \"grepl\"(pattern, x) AS regexp_matches(x, pattern)")
 )
 invisible(DBI::dbExecute(con, "CREATE MACRO \"==\"(a, b) AS a = b"))
+invisible(DBI::dbExecute(con, "CREATE MACRO \"___coalesce\"(a, b) AS COALESCE(a, b)"))
 invisible(
   DBI::dbExecute(
     con,
@@ -166,7 +167,10 @@ rel10 <- duckdb:::rel_project(
   rel9,
   list(
     {
-      tmp_expr <- duckdb:::expr_reference("c_custkey")
+      tmp_expr <- duckdb:::expr_function(
+        "___coalesce",
+        list(duckdb:::expr_reference("c_custkey", rel6), duckdb:::expr_reference("o_custkey", rel7))
+      )
       duckdb:::expr_set_alias(tmp_expr, "c_custkey")
       tmp_expr
     },
