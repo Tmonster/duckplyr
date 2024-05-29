@@ -8,7 +8,7 @@ test_that("duckdb table to duckplyr df works", {
   
   DBI::dbExecute(con, "create table foo as select range a from range(100)")
   duckplyr:::set_default_duckdb_connection(con)
-  foo_df <- table_to_duckplyr_df(con, "foo")
+  foo_df <- table_to_duckplyr_df("foo")
 
   expect_false(duckdb$df_is_materialized(foo_df))
   filtered <- foo_df %>% filter(a > 90)
