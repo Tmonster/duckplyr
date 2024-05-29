@@ -14,6 +14,23 @@ get_default_duckdb_connection <- function() {
   default_duckdb_connection$con
 }
 
+load_rfuns <- function(con) {
+  duckdb$rapi_load_rfuns(con@driver@database_ref)
+}
+
+load_macros <- function(con) {
+  for (i in seq_along(duckplyr_macros)) {
+    sql <- paste0('CREATE or replace TEMP MACRO "', names(duckplyr_macros)[[i]], '"', duckplyr_macros[[i]])
+    DBI::dbExecute(con, sql)
+  }
+}
+
+set_default_duckdb_connection <- function(con) {
+  load_rfuns(con)
+  load_macros(con)
+  default_duckdb_connection$con <- con
+}
+
 duckplyr_macros <- c(
   # https://github.com/duckdb/duckdb-r/pull/156
   "___null" = "() AS CAST(NULL AS BOOLEAN)",
@@ -57,6 +74,7 @@ duckplyr_macros <- c(
   NULL
 )
 
+
 create_default_duckdb_connection <- function() {
   drv <- duckdb::duckdb()
   con <- DBI::dbConnect(drv)
@@ -64,12 +82,8 @@ create_default_duckdb_connection <- function() {
   DBI::dbExecute(con, "set memory_limit='1GB'")
   DBI::dbExecute(con, paste0("pragma temp_directory='", tempdir(), "'"))
 
-  duckdb$rapi_load_rfuns(drv@database_ref)
-
-  for (i in seq_along(duckplyr_macros)) {
-    sql <- paste0('CREATE MACRO "', names(duckplyr_macros)[[i]], '"', duckplyr_macros[[i]])
-    DBI::dbExecute(con, sql)
-  }
+  load_rfuns(con)
+  load_macros(con)
 
   con
 }
