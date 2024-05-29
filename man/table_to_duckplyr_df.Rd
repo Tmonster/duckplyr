@@ -4,11 +4,9 @@
 \alias{table_to_duckplyr_df}
 \title{create a duckplyr df from a table in a duckdb connection}
 \usage{
-table_to_duckplyr_df(con, table_name)
+table_to_duckplyr_df(table_name)
 }
 \arguments{
-\item{con}{a connection to a duckdb database}
-
 \item{table_name}{the name of the table in the duckdb database that will be referenced as a duckplyr df}
 }
 \value{
